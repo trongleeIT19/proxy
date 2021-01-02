@@ -13,7 +13,7 @@ def getBlacklist(blacklist):
 #get file blacklist.conf
     f=open("blacklist.conf","rt")
     for x in f:
-        a.append(x)
+        blacklist.append(x)
 
 def sendFile(file_name,file_size):
     with open(file_name, "rb") as f:
@@ -26,7 +26,7 @@ def sendFile(file_name,file_size):
             conn.sendall(b'''HTTP/1.1 403 Forbidden\n\n'''+bytes_read)   
 
         
-def handle_client(conn,a):
+def handle_client(conn,blacklist):
     #get request as a HTTP message
     request2=conn.recv(10000)
     request=request2.decode('latin-1')
@@ -72,7 +72,7 @@ def handle_client(conn,a):
     
     blocked=False
     status="Unblocked!"
-    for str in a:
+    for str in blacklist:
         if str[:len(str)-1] == websever:
             blocked=True
             status="Blocked!"
@@ -107,13 +107,13 @@ s.bind((HOST,PORT))
 s.listen(1000)
 #change working directory
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
-a=[]
-getBlacklist(a)  
+blacklist=[]
+getBlacklist(blacklist)  
 print("Waiting for server...")
 
 while True:
     conn,addr=s.accept()
-    t=threading.Thread(target=handle_client, args=(conn,a))
+    t=threading.Thread(target=handle_client, args=(conn,blacklist))
     t.setDaemon(True)
     t.start()
     
